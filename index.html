@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestió de Magatzem Escolar</title>
+
+    <style>
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body{
+            background-color:#f4f6f9;
+        }
+
+        header{
+            background-color:#1e3a5f;
+            color:white;
+            padding:20px 50px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+        }
+
+        nav a{
+            color:white;
+            text-decoration:none;
+            margin-left:20px;
+            font-weight:bold;
+        }
+
+        .hero{
+            height:80vh;
+            display:flex;
+            flex-direction:column;
+            justify-content:center;
+            align-items:center;
+            text-align:center;
+            padding:20px;
+        }
+
+        .hero h1{
+            font-size:3rem;
+            color:#1e3a5f;
+            margin-bottom:20px;
+        }
+
+        .hero p{
+            font-size:1.2rem;
+            color:#555;
+            max-width:700px;
+            margin-bottom:30px;
+        }
+
+        .btn{
+            background-color:#1e3a5f;
+            color:white;
+            padding:15px 30px;
+            border:none;
+            border-radius:8px;
+            text-decoration:none;
+            font-size:1rem;
+            transition:0.3s;
+        }
+
+        .btn:hover{
+            background-color:#274c77;
+        }
+
+        .cards{
+            display:flex;
+            justify-content:center;
+            gap:30px;
+            padding:50px;
+            flex-wrap:wrap;
+        }
+
+        .card{
+            background:white;
+            width:300px;
+            padding:25px;
+            border-radius:12px;
+            box-shadow:0 4px 12px rgba(0,0,0,0.1);
+            text-align:center;
+        }
+
+        .card h3{
+            color:#1e3a5f;
+            margin-bottom:10px;
+        }
+
+        footer{
+            background:#1e3a5f;
+            color:white;
+            text-align:center;
+            padding:20px;
+            margin-top:40px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h2>Magatzem Escolar</h2>
+
+        <nav>
+            <a href="#">Inici</a>
+            <a href="#">Productes</a>
+            <a href="#">Entrades</a>
+            <a href="#">Sortides</a>
+            <a href="#">Inici de sessió</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <h1>Gestió intel·ligent del magatzem escolar</h1>
+
+        <p>
+            Controla fàcilment el material escolar, segueix l’estoc,
+            registra entrades i sortides de productes i mantén el magatzem
+            sempre organitzat.
+        </p>
+
+        <a href="#" class="btn">Accedir al sistema</a>
+    </section>
+
+    <section class="cards">
+
+        <div class="card">
+            <h3>📦 Gestió de productes</h3>
+            <p>
+                Afegeix, edita i organitza tots els materials del magatzem.
+            </p>
+        </div>
+
+        <div class="card">
+            <h3>📊 Control d’estoc</h3>
+            <p>
+                Consulta ràpidament les quantitats disponibles.
+            </p>
+        </div>
+
+        <div class="card">
+            <h3>🔍 Cerca ràpida</h3>
+            <p>
+                Troba qualsevol producte en pocs segons.
+            </p>
+        </div>
+
+    </section>
+
+    <footer>
+        © 2026 - Sistema de Gestió de Magatzem Escolar
+    </footer>
+
+</body>
+</html>
