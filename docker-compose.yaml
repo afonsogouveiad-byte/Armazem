@@ -46,7 +46,7 @@ services:
 #      - ./db_data:/var/lib/mysql
 # Per evitar-ho fem un named volume, que no correspon a cap carpeta, però que es pot
 # esborrar fàcilment. El volum també s'ha de definir en el docker compose també.
-      - db_data:/var/lib/mysql
+      - db_items:/var/lib/mysql
       - ./db_init:/docker-entrypoint-initdb.d
 
 
@@ -75,6 +75,6 @@ services:
 # Pero si voleu només esborrar el volum de la BD (per tal de reinicia la BBDD) aleshores podeu fer-ho:
 #    docker compose stop dh
 #    docker compose rm db
-#    docker volume rm dockerphp_db_data
+#    docker volume rm dockerphp_db_items
 volumes:
-  db_data:
+  db_items:
