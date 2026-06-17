@@ -28,8 +28,10 @@ function getField(array $row, array $keys, string $default = ''): string
 function normalizeImage(string $value): string
 {
     $value = trim($value);
+    // Do not return the site logo as a fallback for missing item images.
+    // Return an empty string so the template can render a proper placeholder.
     if ($value === '') {
-        return 'images/inspedr.jpg';
+        return '';
     }
 
     if (preg_match('#^(https?://|/|[A-Za-z]:\\\\)#', $value)) {
@@ -78,6 +80,8 @@ if ($selectedTable !== null) {
             background-color: #f4f6f9;
             color: #1e3a5f;
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         header {
@@ -136,12 +140,25 @@ if ($selectedTable !== null) {
         }
 
         .items-grid {
-            max-width: 1100px;
+            /* Force 5 cards per row on wide screens */
+            max-width: 1400px;
             margin: 0 auto 60px;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(5, 1fr);
             gap: 24px;
             padding: 0 40px 40px;
+        }
+
+        @media (max-width: 1200px) {
+            .items-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+
+        @media (max-width: 992px) {
+            .items-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        @media (max-width: 640px) {
+            .items-grid { grid-template-columns: repeat(2, 1fr); padding: 0 16px 24px; }
         }
 
         .item-card {
@@ -156,9 +173,26 @@ if ($selectedTable !== null) {
 
         .item-card img {
             width: 100%;
-            min-height: 190px;
+            min-height: 220px;
             object-fit: cover;
             display: block;
+        }
+
+        .media {
+            overflow: hidden;
+            border-top-left-radius: 18px;
+            border-top-right-radius: 18px;
+        }
+
+        .item-placeholder {
+            width: 100%;
+            min-height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, #f0f3f7, #e8edf3);
+            color: #6b7280;
+            font-weight: 600;
         }
 
         .item-card-content {
@@ -167,6 +201,10 @@ if ($selectedTable !== null) {
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+        }
+
+        .main {
+            flex: 1 0 auto;
         }
 
         .item-card h2 {
@@ -210,12 +248,11 @@ if ($selectedTable !== null) {
             line-height: 1.8;
         }
 
-        footer {
-            text-align: center;
-            padding: 22px 20px 24px;
-            background: #1e3a5f;
-            color: white;
-            font-size: 0.95rem;
+        footer{
+            text-align:center;
+            padding:25px;
+            background:#1e3a5f;
+            color:white;
         }
 
         @media (max-width: 768px) {
@@ -244,12 +281,9 @@ if ($selectedTable !== null) {
         <span>Magatzem Escolar</span>
     </a>
 
-    <nav>
-        <a href="index.html">Inici</a>
-        <a href="itens.php">Llistar ítems</a>
-    </nav>
 </header>
 
+<main class="main">
 <section class="page-heading">
     <h1>Llista d’ítems del magatzem</h1>
     <p>Consulta tots els articles registrats, amb imatge, nom i l’estat del stock. Aquesta pàgina llegeix la base de dades i mostra cada element com una targeta fàcil de llegir.</p>
@@ -272,18 +306,24 @@ if ($selectedTable !== null) {
     <?php foreach ($items as $item): ?>
         <?php
             $title = getField($item, ['name', 'nom', 'nome', 'product', 'producte', 'material', 'title'], 'Ítem sense nom');
-            $description = getField($item, ['description', 'descr', 'descripcio', 'detalls', 'details', 'note', 'nota'], 'Cap descripció disponible.');
             $stock = getField($item, ['stock', 'estoc', 'quantitat', 'quantitat_actual', 'quantity', 'available'], 'N/D');
-            $image = normalizeImage(getField($item, ['image', 'img', 'imatge', 'imagem', 'foto', 'foto_url', 'url'], ''));
+            $rawImage = getField($item, ['image', 'img', 'imatge', 'imagem', 'foto', 'foto_url', 'url'], '');
+            $image = normalizeImage($rawImage);
+            $noImage = $rawImage === '';
             $extra = getField($item, ['category', 'categoria', 'categoria_id', 'tipus', 'type'], '');
         ?>
-        <article class="item-card">
-            <img src="<?= htmlspecialchars($image, ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8') ?>">
-            <div class="item-card-content">
-                <div>
-                    <h2><?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8') ?></h2>
-                    <p><?= htmlspecialchars($description, ENT_QUOTES, 'UTF-8') ?></p>
-                </div>
+          <article class="item-card">
+              <div class="media">
+                  <?php if ($image !== ''): ?>
+                      <img src="<?= htmlspecialchars($image, ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8') ?>">
+                  <?php else: ?>
+                      <div class="item-placeholder">Imatge no disponible</div>
+                  <?php endif; ?>
+              </div>
+              <div class="item-card-content">
+                  <div>
+                      <h2><?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8') ?></h2>
+                  </div>
                 <div class="item-meta">
                     <span>Stock: <?= htmlspecialchars($stock, ENT_QUOTES, 'UTF-8') ?></span>
                     <?php if ($extra !== ''): ?>
@@ -294,6 +334,7 @@ if ($selectedTable !== null) {
         </article>
     <?php endforeach; ?>
 </div>
+</main>
 
 <footer>
     © 2026 - Sistema de Gestió de Magatzem Escolar
