@@ -34,6 +34,10 @@ FLUSH PRIVILEGES;
 USE armazem;
 
 
-
-DROP TABLE IF EXISTS `menus`;
--- CREATE TABLE "items" ....
+DROP TABLE IF EXISTS `items`;
+CREATE TABLE `items` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `stock` int NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
