@@ -346,10 +346,12 @@ if ($selectedTable !== null) {
           <article class="item-card">
               <div class="media">
                   <?php if ($image !== ''): ?>
-                      <img src="<?= htmlspecialchars($image, ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8') ?>">
-                  <?php else: ?>
-                      <div class="item-placeholder">Imatge no disponible</div>
-                  <?php endif; ?>
+    <a href="item.php?id=<?= urlencode($id) ?>">
+        <img src="<?= htmlspecialchars($image, ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8') ?>">
+    </a>
+<?php else: ?>
+    <div class="item-placeholder">Imatge no disponible</div>
+<?php endif; ?> 
               </div>
               <div class="item-card-content">
                   <div>
