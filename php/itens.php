@@ -312,7 +312,7 @@ if ($selectedTable !== null) {
 <main class="main">
 <section class="page-heading">
     <h1>Llista d’ítems del magatzem</h1>
-    <p>Consulta tots els articles registrats, amb imatge, nom i l’estat del stock. Aquesta pàgina llegeix la base de dades i mostra cada element com una targeta fàcil de llegir.</p>
+    <p>Consultar, actualitzar o crear articles, amb imatge, nom i estat de l'estoc. Aquesta pàgina llegeix la base de dades i mostra cada element com una targeta fàcil de llegir.</p>
 </section>
 
 <?php if ($errorMessage !== ''): ?>
