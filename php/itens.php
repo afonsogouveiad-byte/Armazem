@@ -37,7 +37,12 @@ function normalizeImage(string $value): string
     if (preg_match('#^(https?://|/|[A-Za-z]:\\\\)#', $value)) {
         return $value;
     }
-
+    if (strpos($value, 'uploads/') === 0) {
+        return '/' . $value;
+    }
+    if (strpos($value, 'images/') === 0) {
+        return '/' . $value;
+    }
     return 'images/' . basename($value);
 }
 

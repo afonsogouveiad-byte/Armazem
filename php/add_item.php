@@ -18,9 +18,18 @@ while ($row = $res->fetch_assoc()) { $cols[] = $row['Field']; }
 
 // map common names to actual columns
 $map = [];
-foreach (['name'=>'name','title'=>'title','product'=>'product','stock'=>'stock','image'=>'image','category'=>'category'] as $k => $_) {
-    foreach ([$k, $k.'_id', $k.'e', substr($k,0,4)] as $cand) {
-        if (in_array($cand, $cols, true)) { $map[$k] = $cand; break; }
+$columnCandidates = [
+    'name' => ['name','nom','nome','title','product','producte','material','item'],
+    'stock' => ['stock','estoc','quantitat','quantidade','quantity','qty','available'],
+    'image' => ['image','imagem','imatge','foto','img','foto_url','image_url','url'],
+    'category' => ['category','categoria','type','tipus']
+];
+foreach ($columnCandidates as $logical => $candidates) {
+    foreach ($candidates as $cand) {
+        if (in_array($cand, $cols, true)) {
+            $map[$logical] = $cand;
+            break;
+        }
     }
 }
 
@@ -32,26 +41,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // handle uploaded image file
     $imageValue = '';
-    if (!empty($_FILES['image_file']['name']) && $_FILES['image_file']['error'] === UPLOAD_ERR_OK) {
-        $tmp = $_FILES['image_file']['tmp_name'];
-        $name = basename($_FILES['image_file']['name']);
-        $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
-        if (!in_array($ext, ['jpg','jpeg','png','gif'], true)) { $error = 'Tipus d\'imatge no permès.'; }
-        else {
-            $targetDir = dirname(__DIR__) . '/images/';
-            if (!is_dir($targetDir)) @mkdir($targetDir, 0755, true);
-            $newName = uniqid('img_') . '.' . $ext;
-            if (move_uploaded_file($tmp, $targetDir . $newName)) { $imageValue = 'images/' . $newName; }
-            else { $error = 'No s\'ha pogut pujar la imatge.'; }
+    if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK && $_FILES['image']['name'] !== '') {
+        $maxSize = 100 * 1024 * 1024; // 100 MB
+        if ($_FILES['image']['size'] > $maxSize) {
+            $error = 'Error: la imatge és massa gran.';
+        } else {
+            $check = getimagesize($_FILES['image']['tmp_name']);
+            if ($check === false) {
+                $error = 'Error: el fitxer no és una imatge vàlida.';
+            } else {
+                $allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                if (!in_array($check['mime'], $allowed, true)) {
+                    $error = 'Error: tipus d\'imatge no permès.';
+                } else {
+                    $uploadDir = __DIR__ . '/uploads/';
+                    if (!is_dir($uploadDir)) {
+                        @mkdir($uploadDir, 0777, true);
+                    }
+                    if (is_dir($uploadDir) && !is_writable($uploadDir)) {
+                        @chmod($uploadDir, 0777);
+                    }
+
+                    if (!is_dir($uploadDir) || !is_writable($uploadDir)) {
+                        $error = 'Error: no es pot escriure al directori d\'imatges.';
+                    } else {
+                        $imageFileName = uniqid('img_', true) . '_' . preg_replace(
+                            '/[^A-Za-z0-9._-]/',
+                            '_',
+                            basename($_FILES['image']['name'])
+                        );
+                        if (!move_uploaded_file($_FILES['image']['tmp_name'], $uploadDir . $imageFileName)) {
+                            $error = 'No s\'ha pogut pujar la imatge.';
+                        } else {
+                            $imageValue = 'uploads/' . $imageFileName;
+                        }
+                    }
+                }
+            }
         }
     }
 
     foreach (['name','stock','image'] as $k) {
         if (isset($map[$k])) {
-            $val = null;
-            if ($k === 'image') $val = $imageValue;
-            else $val = $_POST[$k] ?? null;
-            if ($val !== null && $val !== '') {
+            if ($k === 'image') {
+                $val = $imageValue;
+                if ($val === '') {
+                    $val = '';
+                }
+            } else {
+                $val = $_POST[$k] ?? null;
+            }
+            if ($val !== null) {
                 $insertCols[] = '`' . $conn->real_escape_string($map[$k]) . '`';
                 $placeholders[] = '?';
                 $values[] = $val;
@@ -108,8 +148,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <label for="stock">Stock</label>
         <input type="number" name="stock" id="stock" step="1" value="0">
 
-        <label for="image_file">Puja una imatge</label>
-        <input type="file" name="image_file" id="image_file" accept="image/*" required>
+        <label for="image">Puja una imatge</label>
+        <input type="file" name="image" id="image" accept="image/*" required>
 
         <img id="preview" class="img-preview" src="" alt="" style="display:none">
 
@@ -122,8 +162,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   </div>
 
   <script>
-    const imageInput = document.getElementById('image');
-    const fileInput = document.getElementById('image_file');
+    const fileInput = document.getElementById('image');
     const preview = document.getElementById('preview');
 
     function showPreview(src){
@@ -131,7 +170,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       preview.src = src; preview.style.display='block';
     }
 
-    imageInput.addEventListener('input', e => { if (e.target.value) showPreview(e.target.value); else showPreview(''); });
     fileInput.addEventListener('change', e => {
       const f = e.target.files[0];
       if (!f) return;

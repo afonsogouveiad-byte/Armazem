@@ -29,15 +29,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $values = [];
   // handle file upload
   $uploadedImage = null;
-  if (!empty($_FILES['image_file']['name']) && $_FILES['image_file']['error'] === UPLOAD_ERR_OK) {
-    $tmp = $_FILES['image_file']['tmp_name'];
-    $name = basename($_FILES['image_file']['name']);
+  if (!empty($_FILES['image']['name']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+    $tmp = $_FILES['image']['tmp_name'];
+    $name = basename($_FILES['image']['name']);
     $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
-    if (in_array($ext, ['jpg','jpeg','png','gif'], true)) {
-      $targetDir = dirname(__DIR__) . '/images/';
+    if (in_array($ext, ['jpg','jpeg','png','gif','webp'], true)) {
+      $targetDir = __DIR__ . '/../uploads/';
       if (!is_dir($targetDir)) @mkdir($targetDir, 0755, true);
       $newName = uniqid('img_') . '.' . $ext;
-      if (move_uploaded_file($tmp, $targetDir . $newName)) { $uploadedImage = 'images/' . $newName; }
+      if (is_dir($targetDir) && is_writable($targetDir) && move_uploaded_file($tmp, $targetDir . $newName)) {
+        $uploadedImage = 'uploads/' . $newName;
+      }
     }
   }
   // map POSTed columns to update set
@@ -104,7 +106,7 @@ $stmt->close();
           <?php if (strpos(strtolower($c),'stock') !== false): ?>
             <input type="number" name="<?= htmlspecialchars($c) ?>" id="<?= htmlspecialchars($c) ?>" value="<?= htmlspecialchars($row[$c] ?? '') ?>">
           <?php elseif (strpos(strtolower($c),'image') !== false || strpos(strtolower($c),'img') !== false || strpos(strtolower($c),'foto') !== false): ?>
-            <input type="file" name="image_file" accept="image/*">
+            <input type="file" name="image" accept="image/*">
             <img id="preview" class="img-preview" src="<?= htmlspecialchars($row[$c] ?? '') ?>" <?= empty($row[$c]) ? 'style="display:none"' : '' ?> >
             <input type="hidden" name="<?= htmlspecialchars($c) ?>" value="<?= htmlspecialchars($row[$c] ?? '') ?>">
           <?php else: ?>
