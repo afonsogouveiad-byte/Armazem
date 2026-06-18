@@ -73,6 +73,7 @@ if ($selectedTable !== null) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Llista d’ítems</title>
+    <link rel="icon" href="images/inspedr.jpg" type="image/jpeg">
     <style>
         * {
             margin: 0;

@@ -186,6 +186,7 @@ $stmt->close();
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Editar ítem</title>
+<link rel="icon" href="images/inspedr.jpg" type="image/jpeg">
 
 <style>
 body{
