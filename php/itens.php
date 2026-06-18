@@ -315,6 +315,15 @@ if ($selectedTable !== null) {
     <p>Consultar, actualitzar o crear articles, amb imatge, nom i estat de l'estoc. Aquesta pàgina llegeix la base de dades i mostra cada element com una targeta fàcil de llegir.</p>
 </section>
 
+<!-- SEARCH BAR -->
+    <input
+    id="searchInput"
+    type="text"
+    placeholder="Pesquisar por nome ou descrição..."
+    style="width:100%;max-width:500px;margin:20px auto;display:block;padding:10px;border-radius:8px;border:1px solid #ccc;"
+>
+
+
 <?php if ($errorMessage !== ''): ?>
     <div class="error-state">
         <strong>Avís:</strong> <?= htmlspecialchars($errorMessage, ENT_QUOTES, 'UTF-8') ?>
@@ -343,7 +352,10 @@ if ($selectedTable !== null) {
                 if (array_key_exists($k, $item)) { $id = (string) $item[$k]; break; }
             }
         ?>
-          <article class="item-card">
+          <article class="item-card"
+    data-name="<?= htmlspecialchars(strtolower($title)) ?>"
+    data-desc="<?= htmlspecialchars(strtolower(getField($item, ['description','desc','info'], ''))) ?>"
+>
               <div class="media">
                   <?php if ($image !== ''): ?>
     <a href="item.php?id=<?= urlencode($id) ?>&table=<?= urlencode($selectedTable) ?>">
@@ -376,7 +388,23 @@ if ($selectedTable !== null) {
     <?php endforeach; ?>
 </div>
 </main>
+<script>
+const input = document.getElementById('searchInput');
+const cards = document.querySelectorAll('.item-card');
 
+input.addEventListener('input', () => {
+    const value = input.value.toLowerCase().trim();
+
+    cards.forEach(card => {
+        const name = card.dataset.name || '';
+        const desc = card.dataset.desc || '';
+
+        const match = name.includes(value) || desc.includes(value);
+
+        card.style.display = match ? 'flex' : 'none';
+    });
+});
+</script>
 <footer>
     © 2026 - Sistema de Gestió de Magatzem Escolar
 </footer>
