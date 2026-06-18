@@ -2,4 +2,3 @@ Aquest directori conté els fitxers necessaries per a la creació de les imatges
 
 Bàsicament per aquells contenidors que no siguin estàndards, ja que aleshores necessitem un fitxer Dockerfile per a crear-los a la nostra mida.
 
-Soy diego
