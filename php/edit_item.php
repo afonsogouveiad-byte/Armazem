@@ -33,6 +33,7 @@ while ($row = $res->fetch_assoc()) {
 /* FIND PRIMARY KEY */
 $pk = null;
 $res2 = $conn->query("SHOW COLUMNS FROM `" . $conn->real_escape_string($selectedTable) . "`");
+
 while ($r = $res2->fetch_assoc()) {
     if (strpos($r['Extra'] ?? '', 'auto_increment') !== false) {
         $pk = $r['Field'];
@@ -54,24 +55,35 @@ if ($pk === null) {
     exit;
 }
 
-/* UPDATE */
 $error = '';
 
+/* UPDATE */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $values = [];
     $set = [];
 
-    /* IMAGE UPLOAD (FIXED & SAFE) */
+    /* STOCK VALIDATION */
+    foreach ($cols as $c) {
+        if (strpos(strtolower($c), 'stock') !== false) {
+            $stock = $_POST[$c] ?? 0;
+            if (!is_numeric($stock) || $stock < 0) {
+                $error = "Stock não pode ser negativo";
+            }
+        }
+    }
+
+    /* IMAGE UPLOAD (OPTIONAL) */
     $uploadedImage = null;
 
-    if (!empty($_FILES['image']['name']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+    if (!$error && !empty($_FILES['image']['name']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
 
         $tmp = $_FILES['image']['tmp_name'];
 
         $check = getimagesize($tmp);
+
         if ($check === false) {
-            $error = "Ficheiro inválido (não é imagem)";
+            $error = "Ficheiro inválido";
         } else {
 
             $allowed = ['image/jpeg','image/png','image/gif','image/webp'];
@@ -91,21 +103,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (move_uploaded_file($tmp, $targetDir . $newName)) {
                     $uploadedImage = 'uploads/' . $newName;
                 } else {
-                    $error = "Erro ao fazer upload";
+                    $error = "Erro no upload";
                 }
             }
         }
     }
 
-    /* BUILD UPDATE QUERY */
+    /* BUILD UPDATE */
     foreach ($cols as $c) {
 
         if ($c === $pk) continue;
 
         if ($uploadedImage !== null && (
-            strpos(strtolower($c), 'image') !== false ||
-            strpos(strtolower($c), 'img') !== false ||
-            strpos(strtolower($c), 'foto') !== false
+            strpos(strtolower($c),'image') !== false ||
+            strpos(strtolower($c),'img') !== false ||
+            strpos(strtolower($c),'foto') !== false
         )) {
             $set[] = "`$c` = ?";
             $values[] = $uploadedImage;
@@ -113,8 +125,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (isset($_POST[$c])) {
+            $val = $_POST[$c];
+
+            if (strpos(strtolower($c), 'stock') !== false) {
+                if ($val < 0) $val = 0;
+            }
+
             $set[] = "`$c` = ?";
-            $values[] = $_POST[$c];
+            $values[] = $val;
         }
     }
 
@@ -137,12 +155,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $values[] = $id;
 
             $stmt->bind_param($types, ...$values);
-
             $stmt->execute();
             $stmt->close();
 
             header('Location: itens.php');
             exit;
+
         } else {
             $error = "Erro SQL";
         }
@@ -258,7 +276,7 @@ a{
     <label><?= htmlspecialchars($c) ?></label>
 
     <?php if (strpos(strtolower($c), 'stock') !== false): ?>
-        <input type="number" name="<?= $c ?>" value="<?= htmlspecialchars($row[$c] ?? '') ?>">
+        <input type="number" name="<?= $c ?>" min="0" value="<?= htmlspecialchars($row[$c] ?? '') ?>">
 
     <?php elseif (
         strpos(strtolower($c), 'image') !== false ||
