@@ -4,13 +4,13 @@ require_once __DIR__ . '/connexio.php';
 $id = $_GET['id'] ?? '';
 
 if ($id === '') {
-    die("Missing id");
+    die("Falta l'id");
 }
 
-/* tabela fixa (não vem do URL) */
+/* taula fixa (no ve de l'URL) */
 $table = "items";
 
-/* fetch item */
+/* obtenir l'element */
 $stmt = $conn->prepare("SELECT * FROM `$table` WHERE id = ? LIMIT 1");
 $stmt->bind_param("s", $id);
 $stmt->execute();
@@ -18,7 +18,7 @@ $item = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
 if (!$item) {
-    die("Item not found");
+    die("Element no trobat");
 }
 
 /* helper */
@@ -29,8 +29,8 @@ function get($row, $keys, $default = '') {
     return $default;
 }
 
-$title = get($item, ['name','nom','title'], 'Sem nome');
-$desc  = get($item, ['description','desc','detalhes','info'], 'Sem descrição');
+$title = get($item, ['name','nom','title'], 'Sense nom');
+$desc  = get($item, ['description','desc','detalhes','info'], 'Sense descripció');
 
 $img1  = get($item, ['image','img','foto','url'], '');
 $img2  = get($item, ['image2','img2','foto2'], '');
@@ -83,6 +83,7 @@ img{
     text-decoration:none;
     border-radius:8px;
     margin-top:15px;
+    margin-right:10px;
 }
 </style>
 </head>
@@ -97,20 +98,24 @@ img{
     <?php if ($img1): ?>
         <img src="<?= htmlspecialchars($img1) ?>">
     <?php else: ?>
-        <div style="background:#eee;display:flex;align-items:center;justify-content:center;">Sem imagem</div>
+        <div style="background:#eee;display:flex;align-items:center;justify-content:center;">Sense imatge</div>
     <?php endif; ?>
 
     <?php if ($img2): ?>
         <img src="<?= htmlspecialchars($img2) ?>">
     <?php else: ?>
-        <div style="background:#eee;display:flex;align-items:center;justify-content:center;">Sem imagem</div>
+        <div style="background:#eee;display:flex;align-items:center;justify-content:center;">Sense imatge</div>
     <?php endif; ?>
 </div>
 
 <p><?= htmlspecialchars($desc) ?></p>
 
 <a class="btn" href="edit_item.php?id=<?= urlencode($id) ?>">
-    Editar item
+    Editar element
+</a>
+
+<a class="btn" href="javascript:history.back()">
+    Tornar enrere
 </a>
 
 </div>
