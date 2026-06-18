@@ -84,41 +84,40 @@ if ($selectedTable !== null) {
             flex-direction: column;
         }
 
-        header {
-            background-color: #1e3a5f;
-            color: white;
-            padding: 18px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 16px;
+        header{
+            background:#1e3a5f;
+            color:white;
+            padding:14px 40px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            box-shadow:0 4px 18px rgba(0,0,0,0.15);
         }
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            text-decoration: none;
-            color: white;
+        .logo{
+            display:flex;
+            align-items:center;
+            gap:12px;
+            font-weight:700;
+            font-size:1.1rem;
         }
 
-        .logo img {
-            height: 50px;
-            border-radius: 8px;
-            object-fit: contain;
+        .logo img{
+            height:40px;
+            border-radius:6px;
         }
 
-        .logo span {
-            font-size: 1.25rem;
-            font-weight: bold;
+        nav a{
+            color:white;
+            text-decoration:none;
+            margin-left:20px;
+            font-weight:600;
+            opacity:0.9;
+            transition:0.2s;
         }
 
-        nav a {
-            color: white;
-            text-decoration: none;
-            margin-left: 24px;
-            font-weight: bold;
+        nav a:hover{
+            opacity:1;
         }
 
         .page-heading {
@@ -278,7 +277,6 @@ if ($selectedTable !== null) {
 <header>
     <a href="index.html" class="logo">
         <img src="images/inspedr.jpg" alt="Logo de l'escola">
-        <span>Magatzem Escolar</span>
     </a>
 
 </header>
