@@ -13,8 +13,7 @@ foreach ($tableNames as $t) {
 }
 
 if ($selectedTable === null) {
-    echo 'No table found';
-    exit;
+    exit('No table found');
 }
 
 $id = $_GET['id'] ?? null;
@@ -30,29 +29,13 @@ while ($row = $res->fetch_assoc()) {
     $cols[] = $row['Field'];
 }
 
-/* FIND PRIMARY KEY */
-$pk = null;
-$res2 = $conn->query("SHOW COLUMNS FROM `" . $conn->real_escape_string($selectedTable) . "`");
-
-while ($r = $res2->fetch_assoc()) {
-    if (strpos($r['Extra'] ?? '', 'auto_increment') !== false) {
-        $pk = $r['Field'];
+/* PRIMARY KEY */
+$pk = 'id';
+foreach ($cols as $c) {
+    if ($c === 'id' || $c === 'ID') {
+        $pk = $c;
         break;
     }
-}
-
-if ($pk === null) {
-    foreach (['id','ID','item_id','product_id'] as $c) {
-        if (in_array($c, $cols, true)) {
-            $pk = $c;
-            break;
-        }
-    }
-}
-
-if ($pk === null) {
-    echo 'PK not found';
-    exit;
 }
 
 $error = '';
@@ -60,52 +43,42 @@ $error = '';
 /* UPDATE */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $values = [];
     $set = [];
+    $values = [];
 
-    /* STOCK VALIDATION */
-    foreach ($cols as $c) {
-        if (strpos(strtolower($c), 'stock') !== false) {
-            $stock = $_POST[$c] ?? 0;
-            if (!is_numeric($stock) || $stock < 0) {
-                $error = "Stock não pode ser negativo";
-            }
+    /* UPLOAD IMAGE 1 */
+    $uploadedImage = null;
+    if (!empty($_FILES['image']['name'])) {
+
+        $tmp = $_FILES['image']['tmp_name'];
+        if (getimagesize($tmp)) {
+
+            $ext = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+            $name = uniqid('img_', true) . '.' . $ext;
+
+            $dir = __DIR__ . '/uploads/';
+            if (!is_dir($dir)) mkdir($dir, 0777, true);
+
+            move_uploaded_file($tmp, $dir . $name);
+            $uploadedImage = 'uploads/' . $name;
         }
     }
 
-    /* IMAGE UPLOAD (OPTIONAL) */
-    $uploadedImage = null;
+    /* UPLOAD IMAGE 2 */
+    $uploadedImage2 = null;
+    if (!empty($_FILES['image2']['name'])) {
 
-    if (!$error && !empty($_FILES['image']['name']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+        $tmp = $_FILES['image2']['tmp_name'];
+        if (getimagesize($tmp)) {
 
-        $tmp = $_FILES['image']['tmp_name'];
+            $ext = pathinfo($_FILES['image2']['name'], PATHINFO_EXTENSION);
+            $name = uniqid('img2_', true) . '.' . $ext;
 
-        $check = getimagesize($tmp);
+            $dir = __DIR__ . '/uploads/';
+            if (!is_dir($dir)) mkdir($dir, 0777, true);
 
-        if ($check === false) {
-            $error = "Ficheiro inválido";
-        } else {
-
-            $allowed = ['image/jpeg','image/png','image/gif','image/webp'];
-
-            if (!in_array($check['mime'], $allowed, true)) {
-                $error = "Tipo de imagem não permitido";
-            } else {
-
-                $targetDir = __DIR__ . '/uploads/';
-                if (!is_dir($targetDir)) {
-                    mkdir($targetDir, 0777, true);
-                }
-
-                $ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
-                $newName = uniqid('img_', true) . '.' . $ext;
-
-                if (move_uploaded_file($tmp, $targetDir . $newName)) {
-                    $uploadedImage = 'uploads/' . $newName;
-                } else {
-                    $error = "Erro no upload";
-                }
-            }
+            move_uploaded_file($tmp, $dir . $name);
+            $uploadedImage2 = 'uploads/' . $name;
         }
     }
 
@@ -114,66 +87,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($c === $pk) continue;
 
-        if ($uploadedImage !== null && (
-            strpos(strtolower($c),'image') !== false ||
-            strpos(strtolower($c),'img') !== false ||
-            strpos(strtolower($c),'foto') !== false
-        )) {
+        // IMAGE 1 ONLY
+        if ($c === 'image' && $uploadedImage !== null) {
             $set[] = "`$c` = ?";
             $values[] = $uploadedImage;
             continue;
         }
 
-        if (isset($_POST[$c])) {
-            $val = $_POST[$c];
-
-            if (strpos(strtolower($c), 'stock') !== false) {
-                if ($val < 0) $val = 0;
-            }
-
+        // IMAGE 2 ONLY
+        if ($c === 'image2' && $uploadedImage2 !== null) {
             $set[] = "`$c` = ?";
-            $values[] = $val;
+            $values[] = $uploadedImage2;
+            continue;
+        }
+
+        if (isset($_POST[$c])) {
+            $set[] = "`$c` = ?";
+            $values[] = $_POST[$c];
         }
     }
 
-    if (empty($set) && $error === '') {
-        $error = "Nada para atualizar";
-    }
+    if ($set) {
 
-    if ($error === '') {
-
-        $sql = "UPDATE `".$conn->real_escape_string($selectedTable)."`
-                SET ".implode(',', $set)."
-                WHERE `".$conn->real_escape_string($pk)."` = ?
+        $sql = "UPDATE `$selectedTable`
+                SET " . implode(',', $set) . "
+                WHERE `$pk` = ?
                 LIMIT 1";
 
         $stmt = $conn->prepare($sql);
 
-        if ($stmt) {
+        $types = str_repeat('s', count($values)) . 's';
+        $values[] = $id;
 
-            $types = str_repeat('s', count($values)) . 's';
-            $values[] = $id;
+        $stmt->bind_param($types, ...$values);
+        $stmt->execute();
 
-            $stmt->bind_param($types, ...$values);
-            $stmt->execute();
-            $stmt->close();
-
-            header('Location: itens.php');
-            exit;
-
-        } else {
-            $error = "Erro SQL";
-        }
+        header("Location: itens.php");
+        exit;
     }
 }
 
-/* FETCH ITEM */
-$stmt = $conn->prepare(
-    "SELECT * FROM `".$conn->real_escape_string($selectedTable)."`
-     WHERE `".$conn->real_escape_string($pk)."` = ?
-     LIMIT 1"
-);
-
+/* FETCH */
+$stmt = $conn->prepare("SELECT * FROM `$selectedTable` WHERE `$pk` = ? LIMIT 1");
 $stmt->bind_param('s', $id);
 $stmt->execute();
 $row = $stmt->get_result()->fetch_assoc();
@@ -285,7 +240,11 @@ a{
         strpos(strtolower($c), 'foto') !== false
     ): ?>
 
-        <input type="file" name="image" accept="image/*">
+        <?php if ($c === 'image'): ?>
+    <input type="file" name="image" accept="image/*">
+<?php elseif ($c === 'image2'): ?>
+    <input type="file" name="image2" accept="image/*">
+<?php endif; ?>
 
         <?php if (!empty($row[$c])): ?>
             <img id="preview" class="img-preview" src="<?= htmlspecialchars($row[$c]) ?>">
