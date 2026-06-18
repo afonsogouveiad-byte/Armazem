@@ -72,7 +72,7 @@ if ($selectedTable !== null) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Llista d’ítems - Magatzem Escolar</title>
+    <title>Llista d’ítems</title>
     <style>
         * {
             margin: 0;
