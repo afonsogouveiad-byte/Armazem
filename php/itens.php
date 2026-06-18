@@ -235,6 +235,24 @@ if ($selectedTable !== null) {
             color: #798999;
         }
 
+            .btn{
+                padding:10px 14px;
+                border-radius:8px;
+                text-decoration:none;
+                display:inline-block;
+                font-weight:600;
+            }
+
+            .btn-primary{ background:#1e3a5f; color:#fff }
+            .btn-add{ background:#2563eb; color:#fff }
+            .btn-edit{ background:#2563eb; color:#fff; border:none }
+
+            .card-actions{ display:flex; gap:8px; margin-top:12px }
+
+            .header-actions{ width:100%; margin-top:12px; padding:0 40px; display:flex; justify-content:flex-end; align-items:center }
+            @media (max-width:960px){ .header-actions{ padding:0 20px } }
+            @media (max-width:640px){ .header-actions{ padding:0 16px } header { padding: 14px 16px } }
+
         .empty-state,
         .error-state {
             max-width: 760px;
@@ -275,11 +293,15 @@ if ($selectedTable !== null) {
 </head>
 <body>
 <header>
-    <a href="index.html" class="logo">
+  <a href="index.html" class="logo">
         <img src="images/inspedr.jpg" alt="Logo de l'escola">
     </a>
 
 </header>
+
+    <div class="header-actions">
+        <a href="add_item.php" class="btn btn-add">Afegir ítem</a>
+    </div>
 
 <main class="main">
 <section class="page-heading">
@@ -309,6 +331,11 @@ if ($selectedTable !== null) {
             $image = normalizeImage($rawImage);
             $noImage = $rawImage === '';
             $extra = getField($item, ['category', 'categoria', 'categoria_id', 'tipus', 'type'], '');
+            // detect primary key value
+            $id = '';
+            foreach (['id','ID','item_id','product_id','codigo','cod'] as $k) {
+                if (array_key_exists($k, $item)) { $id = (string) $item[$k]; break; }
+            }
         ?>
           <article class="item-card">
               <div class="media">
@@ -327,6 +354,14 @@ if ($selectedTable !== null) {
                     <?php if ($extra !== ''): ?>
                         <small><?= htmlspecialchars($extra, ENT_QUOTES, 'UTF-8') ?></small>
                     <?php endif; ?>
+                </div>
+                <div class="card-actions">
+                    <a href="edit_item.php?id=<?= urlencode($id) ?>&table=<?= urlencode($selectedTable) ?>" class="btn btn-edit">Editar</a>
+                    <form method="post" action="delete_item.php" onsubmit="return confirm('Confirmes eliminar aquest ítem?');" style="display:inline">
+                        <input type="hidden" name="id" value="<?= htmlspecialchars($id, ENT_QUOTES, 'UTF-8') ?>">
+                        <input type="hidden" name="table" value="<?= htmlspecialchars($selectedTable, ENT_QUOTES, 'UTF-8') ?>">
+                        <button type="submit" class="btn" style="background:#ef4444;color:white;border:none;border-radius:8px;padding:8px 12px;">Eliminar</button>
+                    </form>
                 </div>
             </div>
         </article>
