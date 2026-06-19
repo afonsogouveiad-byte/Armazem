@@ -277,12 +277,12 @@ a{
 <label>Stock</label>
 <input type="number" name="stock" min="0" value="0" required>
 
-<label>Imatge</label>
+<label>Imatge principal</label>
 <input type="file" name="image" accept="image/*">
 
 <img id="preview" class="img-preview" style="display:none">
 
-<label>Segona imatge</label>
+<label>Imatge secundària</label>
 <input type="file" name="image2" accept="image/*">
 
 <img id="preview2" class="img-preview" style="display:none">

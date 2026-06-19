@@ -229,7 +229,17 @@ a{
 <?php foreach ($cols as $c): ?>
     <?php if ($c === $pk) continue; ?>
 
-    <label><?= htmlspecialchars($c) ?></label>
+    <?php
+$label = $c;
+
+if ($c === 'image') {
+    $label = 'Imatge principal';
+} elseif ($c === 'image2') {
+    $label = 'Imatge secundària';
+}
+?>
+
+<label><?= htmlspecialchars($label) ?></label>
 
     <?php if (strpos(strtolower($c), 'stock') !== false): ?>
         <input type="number" name="<?= $c ?>" min="0" value="<?= htmlspecialchars($row[$c] ?? '') ?>">
