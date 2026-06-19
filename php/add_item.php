@@ -30,7 +30,8 @@ $columnCandidates = [
     'name' => ['name','nom','nome','title','product','producte','material','item'],
     'stock' => ['stock','estoc','quantitat','quantidade','quantity','qty','available'],
     'image' => ['image','imagem','imatge','foto','img','foto_url','image_url','url'],
-    'category' => ['category','categoria','type','tipus']
+    'image2' => ['image2','imagem2','imatge2','foto2','img2','image_url2'],
+    'description' => ['description','descripcio','descrição','descricao','desc','info','detalhes'],
 ];
 
 foreach ($columnCandidates as $logical => $candidates) {
@@ -90,18 +91,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    /* INSERT BUILD */
-    foreach (['name','stock','image'] as $k) {
-        if (!isset($map[$k])) continue;
+    $image2Value = '';
 
-        if ($k === 'image') {
-            $val = $imageValue; // opcional
-        } elseif ($k === 'stock') {
-            $val = $_POST['stock'] ?? 0;
-            if ($val < 0) $val = 0;
+if (!$error && isset($_FILES['image2']) && $_FILES['image2']['error'] === UPLOAD_ERR_OK && $_FILES['image2']['name'] !== '') {
+
+    $check = getimagesize($_FILES['image2']['tmp_name']);
+
+    if ($check === false) {
+        $error = 'Ficheiro não é uma imagem válida';
+    } else {
+
+        $allowed = ['image/jpeg','image/png','image/gif','image/webp'];
+
+        if (!in_array($check['mime'], $allowed, true)) {
+            $error = 'Tipo de imagem não permitido';
         } else {
-            $val = $_POST[$k] ?? null;
+
+            $uploadDir = __DIR__ . '/uploads/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+
+            $ext = strtolower(pathinfo($_FILES['image2']['name'], PATHINFO_EXTENSION));
+            $newName = uniqid('img_', true) . '.' . $ext;
+
+            if (move_uploaded_file($_FILES['image2']['tmp_name'], $uploadDir . $newName)) {
+                $image2Value = 'uploads/' . $newName;
+            } else {
+                $error = 'Erro ao enviar a segunda imagem';
+            }
         }
+    }
+}
+
+    /* INSERT BUILD */
+    foreach (['name','stock','description','image','image2'] as $k) {
+        if ($k === 'image') {
+    $val = $imageValue;
+} elseif ($k === 'image2') {
+    $val = $image2Value;
+} elseif ($k === 'stock') {
+    $val = $_POST['stock'] ?? 0;
+    if ($val < 0) $val = 0;
+} else {
+    $val = $_POST[$k] ?? null;
+}
 
         if ($val !== null) {
             $insertCols[] = '`' . $conn->real_escape_string($map[$k]) . '`';
@@ -243,10 +277,22 @@ a{
 <label>Stock</label>
 <input type="number" name="stock" min="0" value="0" required>
 
-<label>Imagem</label>
+<label>Imatge</label>
 <input type="file" name="image" accept="image/*">
 
 <img id="preview" class="img-preview" style="display:none">
+
+<label>Segona imatge</label>
+<input type="file" name="image2" accept="image/*">
+
+<img id="preview2" class="img-preview" style="display:none">
+
+<label>Descripció</label>
+<textarea
+    name="description"
+    rows="5"
+    style="width:100%;padding:10px;margin-top:6px;border:1px solid #e2e8f0;border-radius:8px;resize:vertical;"
+></textarea>
 
 <div class="actions">
     <button type="submit">Criar</button>
@@ -259,17 +305,27 @@ a{
 </div>
 
 <script>
-const fileInput = document.querySelector('input[type=file]');
-const preview = document.getElementById('preview');
+function setupPreview(inputSelector, previewId) {
+    const input = document.querySelector(inputSelector);
+    const preview = document.getElementById(previewId);
 
-if (fileInput) {
-    fileInput.addEventListener('change', e => {
-        const f = e.target.files[0];
-        if (!f) return;
-        preview.src = URL.createObjectURL(f);
+    if (!input || !preview) return;
+
+    input.addEventListener('change', e => {
+        const file = e.target.files[0];
+
+        if (!file) {
+            preview.style.display = 'none';
+            return;
+        }
+
+        preview.src = URL.createObjectURL(file);
         preview.style.display = 'block';
     });
 }
+
+setupPreview('input[name="image"]', 'preview');
+setupPreview('input[name="image2"]', 'preview2');
 </script>
 
 </body>
